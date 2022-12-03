@@ -2,34 +2,47 @@ var fs = require('fs');
 
 const letters = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+function calculateScoreForGroup(groupList) {
+    const inSets = groupList.map((group) => {
+        return new Set(group);
+    });
+
+    const overlap = [...inSets[0]].filter((inFirst) => inSets[1].has(inFirst)).filter((inFirst) => inSets[2].has(inFirst));
+
+    const overlapScore = overlap.reduce((sum, letter) => {
+        return sum + letters.indexOf(letter);
+    }, 0)
+
+    return overlapScore
+}
+
 fs.readFile('input.txt', 'utf-8', (err, data) => {
     const rowAndCharSplit = data.split("\n").map((s) => {
         return s.split("");
     });
-    const halfSplit = rowAndCharSplit.map((list) => {
-        const half = list.length/2;
-        const firstHalf = list.slice(0, half);
-        const secondHalf = list.slice(half);
-        return [firstHalf, secondHalf];
-    }) 
 
-    const inSets = halfSplit.map(([firstHalf, secondHalf]) => {
-        return [new Set(firstHalf), new Set(secondHalf)];
-    })
+    let elfCount = 0;
+    const groups = rowAndCharSplit.reduce((groupList, list) => {
+        groupList.at(-1).push(list);
 
-    const overlap = inSets.map(([firstSet, secondSet]) => {
-        return [...firstSet].filter((inFirst) => secondSet.has(inFirst));
-    })
+        elfCount += 1;
+        if (elfCount%3 === 0) {
+            groupList.push([])
+            elfCount = 0;
+        }
 
-    const overlapPoints = overlap.map((overlap) => {
-        return overlap.reduce((sum, val) => {
-            return sum + letters.indexOf(val);
-        }, 0)
-    })
+        return groupList
+    }, [[]]).slice(0, -1); // Remove last empty list
 
-    const sum = overlapPoints.reduce((sum, val) => {
+
+    const groupScores = groups.map((group) => {
+        return calculateScoreForGroup(group);
+    });
+
+    const totalScore = groupScores.reduce((sum, val) => {
         return sum + val;
-    }, 0)
+    })
 
-    console.log(sum);
+    console.log(totalScore)
+
 })
