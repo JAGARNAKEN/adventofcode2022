@@ -21,18 +21,14 @@ fs.readFile('input.txt', 'utf-8', (err, data) => {
         return s.split("");
     });
 
-    let elfCount = 0;
-    const groups = rowAndCharSplit.reduce((groupList, list) => {
-        groupList.at(-1).push(list);
-
-        elfCount += 1;
-        if (elfCount%3 === 0) {
+    const groups = rowAndCharSplit.reduce((groupList, list, index) => {
+        if (index%3 === 0) {
             groupList.push([])
-            elfCount = 0;
         }
 
+        groupList.at(-1).push(list);
         return groupList
-    }, [[]]).slice(0, -1); // Remove last empty list
+    }, []);
 
 
     const groupScores = groups.map((group) => {
