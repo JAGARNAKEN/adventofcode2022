@@ -13,11 +13,7 @@ function completeSetOverlap(firstSet, secondSet) {
         return secondSet.has(inFirst);
     })
 
-    if (overlap.length === firstSet.size || overlap.length == secondSet.size) {
-        return true;
-    }
-
-    return false
+    return overlap.length > 0 ? true : false;
 }
 
 fs.readFile('input.txt', 'utf-8', (err, data) => {
@@ -26,9 +22,6 @@ fs.readFile('input.txt', 'utf-8', (err, data) => {
     })
 
     const groupWithRange = rowAndGroupSplit.map(([first, second]) => {
-
-        console.log(first)
-        console.log(second)
         const firstGroup = first.split("-").map((s) => {
             return parseInt(s);
         });
