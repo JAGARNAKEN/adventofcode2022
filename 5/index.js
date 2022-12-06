@@ -1,11 +1,8 @@
 var fs = require('fs');
 
 function doMove([moves, from, to], stacks) {
-    for (let move = 0; move < moves; move++) {
-        let elem = stacks[from].pop();
-        stacks[to].push(elem);
-        
-    }
+    let elems = stacks[from].splice(-moves, moves);
+    stacks[to].push(...elems);
 }
 
 fs.readFile('input.txt', 'utf-8', (err, data) => {
