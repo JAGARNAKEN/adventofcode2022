@@ -1,11 +1,5 @@
 var fs = require('fs');
 
-const Types = {
-    Rock: 1,
-    Paper: 2,
-    Scissor: 3,
-};
-
 fs.readFile('input.txt', 'utf-8', (err, data) => {
     let splitData = data.split("\n");
 
@@ -34,14 +28,21 @@ fs.readFile('input.txt', 'utf-8', (err, data) => {
         }
     })
 
-    const threshold = 100000;
-    let sumUnderThreshold = Object.values(allSizes).reduce((sum, val) => {
-        if (val < threshold) {
-            return sum + val;
+    const currentSpace = 70000000 - allSizes[",/"];
+    const spaceToFree =  30000000 - currentSpace;
+    let candidateDirectories = Object.entries(allSizes).filter(([, val]) => {
+        return val > spaceToFree;
+    });
+    console.log(candidateDirectories);
+
+    const smallestDir = candidateDirectories.reduce((minValue, [, size]) => {
+        if (size < minValue) {
+            return size
         }
+        return minValue;
+    }, Number.MAX_VALUE);
 
-        return sum;
-    }, 0);
+    console.log(smallestDir);
 
-    console.log(sumUnderThreshold);
+
 })
