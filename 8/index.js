@@ -1,93 +1,75 @@
 
 var fs = require('fs');
 
-function numberOfEdgeTrees(grid) {
-    let numberOfRows = grid.length
-    let numberOfColumns = grid[0].length
+function upwardScore(grid, posRowIndex, posColumnIndex) {
+    let posTreeHeight = grid[posRowIndex][posColumnIndex];
+    let treesInView = 0;
 
-    let overlap = 4
-
-    return numberOfRows * 2 + numberOfColumns * 2 - overlap;
-}
-
-function checkRowForward(row, rowIndex) {
-    let visibleTrees = []
-    let highestTreeForRow = row[0];
-    for (let columnIndex = 1; columnIndex < row.length - 1; columnIndex++) {
-        const tree = row[columnIndex];
-        if (tree > highestTreeForRow) {
-            highestTreeForRow = tree;
-            visibleTrees.push([rowIndex, columnIndex]);
+    for (let rowIndex = posRowIndex - 1; 0 <= rowIndex; --rowIndex) {
+        const tree = grid[rowIndex][posColumnIndex];
+        if (tree < posTreeHeight) {
+            treesInView++;
+        } else {
+            return ++treesInView;
         }
     }
-    return visibleTrees
+
+    return treesInView;
 }
 
-function checkRowBackwards(row, rowIndex) {
-    let visibleTrees = []
-    let highestTreeForRow = row.at(-1);
-    for (let columnIndex = row.length-1; 0 < columnIndex; columnIndex--) {
-        const tree = row[columnIndex];
-        if (tree > highestTreeForRow) {
-            highestTreeForRow = tree;
-            visibleTrees.push([rowIndex, columnIndex]);
+function downwardScore(grid, posRowIndex, posColumnIndex) {
+    let posTreeHeight = grid[posRowIndex][posColumnIndex];
+    let treesInView = 0;
+
+    for (let rowIndex = posRowIndex + 1; rowIndex < grid[0].length; rowIndex ++) {
+        const tree = grid[rowIndex][posColumnIndex];
+        if (tree < posTreeHeight) {
+            treesInView++;
+        } else {
+            return ++treesInView;
         }
     }
-    return visibleTrees
+
+    return treesInView;
 }
 
-function numberOfVisibleTreesInGrid(grid) {
-    let visibleTrees = [];
-    let highestTreesForColumns = grid[0];
-    let visibleColumnTrees = [];
-    // Check column forward
-    grid.map((row, rowIndex) => {
-        if (rowIndex === 0 || rowIndex === grid.length - 1) {
-            // Skip first and last row since they are edge rows
-            return;
+function leftScore(grid, posRowIndex, posColumnIndex) {
+    let posTreeHeight = grid[posRowIndex][posColumnIndex];
+    let treesInView = 0;
+
+    for (let columnIndex = posColumnIndex - 1; 0 <= columnIndex; --columnIndex) {
+        const tree = grid[posRowIndex][columnIndex];
+        if (tree < posTreeHeight) {
+            treesInView++;
+        } else {
+            return ++treesInView;
         }
-        // Check rows
-        visibleTrees.push(...checkRowForward(row, rowIndex));
-        visibleTrees.push(...checkRowBackwards(row, rowIndex));
+    }
 
-        row.map((treeHeight, columnIndex) => {
-            if (columnIndex === 0 || columnIndex === row.length - 1) {
-                return;
-            }
+    return treesInView;
+}
 
-            if (treeHeight > highestTreesForColumns[columnIndex]) {
-                highestTreesForColumns[columnIndex] = treeHeight;
-                visibleColumnTrees.push([rowIndex, columnIndex]);
-            }
-        })
-    })
+function rightScore(grid, posRowIndex, posColumnIndex) {
+    let posTreeHeight = grid[posRowIndex][posColumnIndex];
+    let treesInView = 0;
 
-    visibleTrees.push(...visibleColumnTrees);
-
-    // Check column backwards
-    highestTreesForColumns = grid.at(-1);
-    visibleColumnTrees = [];
-
-    grid.reduceRight((prevValue, row, rowIndex) => {
-        if (rowIndex === 0 || rowIndex === grid.length - 1) {
-            // Skip first and last row since they are edge rows
-            return;
+    for (let columnIndex = posColumnIndex + 1; columnIndex < grid.length; columnIndex ++) {
+        const tree = grid[posRowIndex][columnIndex];
+        if (tree < posTreeHeight) {
+            treesInView++;
+        } else {
+            return ++treesInView;
         }
-        // Check column forward
-        row.map((treeHeight, columnIndex) => {
-            if (columnIndex === 0 || columnIndex === row.length - 1) {
-                return;
-            }
+    }
 
-            if (treeHeight > highestTreesForColumns[columnIndex]) {
-                highestTreesForColumns[columnIndex] = treeHeight;
-                visibleColumnTrees.push([rowIndex, columnIndex]);
-            }
-        })
-    }, 0)
+    return treesInView;
+}
 
-
-    return visibleTrees.concat(visibleColumnTrees);
+function calculatePositionScore(grid, posRowIndex, posColumnIndex) {
+    return upwardScore(grid, posRowIndex, posColumnIndex)
+        * downwardScore(grid, posRowIndex, posColumnIndex)
+        * leftScore(grid, posRowIndex, posColumnIndex)
+        * rightScore(grid, posRowIndex, posColumnIndex);
 }
 
 fs.readFile('input.txt', 'utf-8', (err, data) => {
@@ -98,12 +80,15 @@ fs.readFile('input.txt', 'utf-8', (err, data) => {
         });
     });
 
-    console.log(grid);
+    let highestScore = 0;
+    grid.map((row, rowIndex) => {
+        row.map((val, columnIndex) => {
+            const positionScore = calculatePositionScore(grid, rowIndex, columnIndex);
+            if (positionScore > highestScore) {
+                highestScore = positionScore;
+            }
+        })
+    })
 
-    let treesOnEdge = numberOfEdgeTrees(grid);
-    let treesInGrid = numberOfVisibleTreesInGrid(grid);
-
-    let numberOfTreesInGrid = new Set([...treesInGrid.map((val) => val.toString())]).size;
-
-    console.log("Total visible trees", numberOfTreesInGrid + treesOnEdge);
-});
+    console.log("Highest score", highestScore);
+})
